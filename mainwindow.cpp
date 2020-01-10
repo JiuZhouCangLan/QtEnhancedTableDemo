@@ -45,13 +45,16 @@ MainWindow::MainWindow(QWidget *parent) :
      * checkBox feature,set cell(1,1) to checkBox
     */
     model->setCellIsCheckable(model->index(1, 1));
+    model->setData(model->index(1, 1), Qt::Checked, Qt::CheckStateRole); // set checked
+    int state = model->data(model->index(1, 1), Qt::CheckStateRole).toInt(); // get check state
+    qDebug() << static_cast<Qt::CheckState>(state);
 
     /*
      * html feature,set html to cell(2,2)
     */
     model->setData(model->index(2, 2), "<a href='github.com'>this is a link</a>");
     connect(tableView, &EnhancedTableView::linkActivated, this, [ = ](QString link) {
-        qDebug()<<link;
+        qDebug() << link;
     });
 
     ui->verticalLayout->addWidget(tableView);
