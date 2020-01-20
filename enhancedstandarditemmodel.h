@@ -19,6 +19,7 @@ public:
     {
         checkState.insert(index, Qt::Unchecked);
     }
+    enum role{HtmlRole = Qt::UserRole + 200};
 
 private:
     QList<int> checkColumns;

@@ -1,4 +1,5 @@
 #include "enhancedstandarditemmodel.h"
+#include <QTextDocument>
 #include <QtDebug>
 
 EnhancedStandardItemModel::EnhancedStandardItemModel(QObject *parent):
@@ -46,6 +47,10 @@ bool EnhancedStandardItemModel::setData(const QModelIndex &index,
         checkState.insert(index, state);
         emit dataChanged(index, index, QVector<int>() << role);
         return true;
+    } else if (role == HtmlRole) {
+        QTextDocument doc;
+        doc.setHtml(value.toString());
+        QStandardItemModel::setData(index, doc.toPlainText());
     }
 
     return QStandardItemModel::setData(index, value, role);

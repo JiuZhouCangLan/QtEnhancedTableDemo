@@ -1,10 +1,12 @@
 #include "enhancedtableview.h"
+#include "enhancedstandarditemmodel.h"
 #include <QTextDocument>
 #include <QApplication>
 #include <QAbstractItemModel>
 #include <QPainter>
 #include <QtDebug>
 #include <QAbstractTextDocumentLayout>
+#include <QLineEdit>
 
 EnhancedTableView::EnhancedTableView(QWidget *parent): QTableView (parent)
 {
@@ -70,7 +72,7 @@ QString EnhancedTableView::anchorAt(const QPoint &pos) const
         if(delegate != nullptr) {
             QRect itemRect = visualRect(index);
             QPoint relativeClickPosition = pos - itemRect.topLeft();
-            QString html = model()->data(index).toString();
+            QString html = model()->data(index, EnhancedStandardItemModel::HtmlRole).toString();
 
             QTextDocument doc;
             doc.setDefaultFont(this->font());
@@ -135,7 +137,6 @@ void EnhancedTableView::setModel(QAbstractItemModel *model)
     int oldColCount = 0;
     if(this->model() != nullptr) {
         oldColCount = this->model()->columnCount();
-
     }
 
     QTableView::setModel(model);
@@ -144,6 +145,10 @@ void EnhancedTableView::setModel(QAbstractItemModel *model)
     for(int i = oldColCount; i < newColCount; i++) {
         JumpDelegate *delegate = new JumpDelegate(this);
         this->setItemDelegateForColumn(i, delegate);
+    }
+    int rowCount = model->rowCount();
+    for(int i = 0; i < rowCount; i++) {
+        setRowHidden(i, false);
     }
 }
 
@@ -170,7 +175,12 @@ void JumpDelegate::paint(QPainter *painter,
                          const QStyleOptionViewItem &option,
                          const QModelIndex &index) const
 {
-    Q_ASSERT(index.isValid());
+    QVariant htmlData = index.model()->data(index, EnhancedStandardItemModel::HtmlRole);
+    if(!htmlData.isValid()) {
+        return QStyledItemDelegate::paint(painter, option, index);
+    }
+
+    bool wordWrap = option.features & 0x01;
 
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
@@ -187,15 +197,48 @@ void JumpDelegate::paint(QPainter *painter,
     // 绘制超链接
     QTextDocument doc;
     doc.setDefaultFont(widget->font());
-    doc.setHtml(index.model()->data(index).toString());
+    doc.setHtml(htmlData.toString());
     QAbstractTextDocumentLayout::PaintContext paintContext;
+
     QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &opt);
     painter->save();
     painter->translate(textRect.topLeft());
     painter->setClipRect(textRect.translated(-textRect.topLeft()));
-
-    doc.setTextWidth(textRect.width());
+    if(!wordWrap) {
+        doc.setTextWidth(65535);
+    } else {
+        doc.setTextWidth(textRect.width());
+    }
     doc.documentLayout()->draw(painter, paintContext);
 
     painter->restore();
+}
+
+void JumpDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    QVariant htmlData = index.model()->data(index, EnhancedStandardItemModel::HtmlRole);
+    if(htmlData.isValid()) {
+        QLineEdit *edit = dynamic_cast<QLineEdit*>(editor);
+        if(edit != nullptr) {
+            edit->setText(htmlData.toString());
+        } else {
+            QStyledItemDelegate::setEditorData(editor, index);
+        }
+    } else {
+        QStyledItemDelegate::setEditorData(editor, index);
+    }
+}
+
+void JumpDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
+                                const QModelIndex &index) const
+{
+    QLineEdit *edit = dynamic_cast<QLineEdit*>(editor);
+    if(edit != nullptr) {
+        model->setData(index, edit->text(), EnhancedStandardItemModel::HtmlRole);
+        QTextDocument doc;
+        doc.setHtml(edit->text());
+        model->setData(index, doc.toPlainText());
+    } else {
+        QStyledItemDelegate::setModelData(editor, model, index);
+    }
 }

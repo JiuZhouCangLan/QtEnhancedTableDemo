@@ -14,8 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     /*
      * initiate some data
      */
-    EnhancedTableView *tableView = new EnhancedTableView(this);
-    tableView->setEditTriggers(QTableView::NoEditTriggers);
+    EnhancedTableView *tableView = ui->tableView;
     EnhancedStandardItemModel *model = new EnhancedStandardItemModel(4, 5, this);
     tableView->setModel(model);
     QStringList strList = QString("Once you have installed Qt you can "
@@ -52,12 +51,11 @@ MainWindow::MainWindow(QWidget *parent) :
     /*
      * html feature,set html to cell(2,2)
     */
-    model->setData(model->index(2, 2), "<a href='github.com'>this is a link</a>");
+    model->setData(model->index(2, 2), "<a href='github.com'>this is a link</a>",
+                   EnhancedStandardItemModel::HtmlRole);
     connect(tableView, &EnhancedTableView::linkActivated, this, [ = ](QString link) {
         qDebug() << link;
     });
-
-    ui->verticalLayout->addWidget(tableView);
 }
 
 MainWindow::~MainWindow()

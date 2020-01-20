@@ -1,4 +1,4 @@
-#ifndef ENHANCEDTABLEVIEW_H
+﻿#ifndef ENHANCEDTABLEVIEW_H
 #define ENHANCEDTABLEVIEW_H
 
 #include <QTableView>
@@ -23,7 +23,7 @@ signals:
     void linkUnhovered();
 
 private slots:
-    void filterData(int col,QString key);
+    void filterData(int col, QString key);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -35,7 +35,7 @@ private:
 
     QString _mousePressAnchor;
     QString _lastHoveredAnchor;
-    QHash<int,QString> filterMap;
+    QHash<int, QString> filterMap;
 };
 
 class JumpDelegate: public QStyledItemDelegate
@@ -48,6 +48,10 @@ public:
                    const QModelIndex &index) const override;
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
                const QModelIndex &index) const override;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const override;
+
 };
 
 #endif // ENHANCEDTABLEVIEW_H
