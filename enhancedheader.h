@@ -15,6 +15,7 @@ public:
     void clearFilters();
     QSize sectionSizeFromContents(int logicalIndex) const override;
     bool restoreState(const QByteArray &state);
+    void setStretchSection(int logicalIndex);
 
 signals:
     void filterChanged(int logicalIndex, QString filter);
@@ -31,6 +32,7 @@ private:
                       int logicalIndex) const override;
     bool showFilters = true;
     bool textWrap = true;
+    int stretchSection = -1;
 };
 
 #endif // ENHANCEDHEADER_H
